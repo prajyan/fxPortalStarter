@@ -1,30 +1,39 @@
-// We require the Hardhat Runtime Environment explicitly here. This is optional
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// You can also run a script with `npx hardhat run <script>`. If you do that, Hardhat
-// will compile your contracts, add the Hardhat Runtime Environment's members to the
-// global scope, and execute the script.
-const hre = require("hardhat");
-const tokenContractJSON = require("../artifacts/contracts/MetaToken.sol/MetaToken.json");
-require('dotenv').config()
+// This script batch mints Indian_ETH ERC721A tokens.
 
-const tokenAddress = ""; // place your erc20 contract address here
-const tokenABI = tokenContractJSON.abi;
-const walletAddress = ""; // place your public address for your wallet here
+// Import required libraries
+const { ethers } = require("hardhat");
+require("dotenv").config();
 
 async function main() {
+  // Get private key from env
+  const privateKey = process.env.PRIVATE_KEY;
 
-    const token = await hre.ethers.getContractAt(tokenABI, tokenAddress);
-  
-    const tx = await token.mint(walletAddress, 1000);
-    await tx.wait();
+  // The URL of the network provider
+  const networkAddress = "https://ethereum-goerli.publicnode.com";
 
-    console.log("You now have: " + await token.balanceOf(walletAddress) + " tokens");
-  }
-  
-  // We recommend this pattern to be able to use async/await everywhere
-  // and properly handle errors.
-  main().catch((error) => {
+  // Create a provider using the URL
+  const provider = new ethers.providers.JsonRpcProvider(networkAddress);
+
+  // Create a signer from the private key and provider
+  const signer = new ethers.Wallet(privateKey, provider);
+
+  // Tthe address of the deployed contract
+  const contractAddress = "0x6258Fa6Ed6e8cD0d67b5a2e63673156cbAc4cC5C";
+
+  // Get the contract factory and attach it to the signer
+  const NFT = await ethers.getContractFactory("Indian_ETH", signer);
+  const contract = await NFT.attach(contractAddress);
+
+  // Call the mint function on the contract to mint 5 tokens
+  await contract.mint(5);
+
+  // Log a message to the console to indicate that the tokens have been minted
+  console.log("Minted 5 tokens");
+}
+
+main()
+  .then(() => process.exit(0))
+  .catch(error => {
     console.error(error);
-    process.exitCode = 1;
+    process.exit(1);
   });
